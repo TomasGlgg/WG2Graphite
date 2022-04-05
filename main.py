@@ -5,6 +5,7 @@ from pickle import dumps
 from struct import pack
 from socket import socket
 from configparser import ConfigParser
+from os import chdir, path
 
 
 def get_data():
@@ -116,6 +117,7 @@ def main():
 
 
 if __name__ == '__main__':
+    chdir(path.dirname(path.abspath(__file__)))
     config = ConfigParser()
     config.read('config.conf')
     metric = MetricSender()
