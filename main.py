@@ -78,26 +78,26 @@ class MetricSender:
         ip = ip.removesuffix('/32').split('.')
         return '{}.{}.{}.{}'.format(config.get('Graphite', 'path'), ip[2], ip[3], end)
 
-    def delta(self, new_data):
+    def calculate_speed(self, new_data):
         if not new_data or not self.last_data: return
         if len(self.last_data) > len(new_data):  # WG rebooted
             print('Detected WG reboot')
             return
         for peer, traffic in new_data.items():
             if peer in self.last_data:
-                delta_rx = new_data[peer][0] - self.last_data[peer][0]
-                delta_tx = new_data[peer][1] - self.last_data[peer][1]
+                rx_delta = new_data[peer][0] - self.last_data[peer][0]
+                tx_delta = new_data[peer][1] - self.last_data[peer][1]
             else:
-                delta_rx = new_data[peer][0]
-                delta_tx = new_data[peer][1]
-            if delta_rx < 0 or delta_tx < 0:  # WG rebooted
+                rx_delta = new_data[peer][0]
+                tx_delta = new_data[peer][1]
+            if rx_delta < 0 or tx_delta < 0:  # WG rebooted
                 self.sending_data.clear()
                 print('Detected WG reboot')
                 return
-            delta_rx /= time() - self.last_timestamp
-            delta_tx /= time() - self.last_timestamp
-            self._add_data(self.path_by_ip(peer, 'rx'), delta_rx)
-            self._add_data(self.path_by_ip(peer, 'tx'), delta_tx)
+            rx_speed = rx_delta / (time() - self.last_timestamp)
+            tx_speed = tx_delta / (time() - self.last_timestamp)
+            self._add_data(self.path_by_ip(peer, 'rx'), rx_speed)
+            self._add_data(self.path_by_ip(peer, 'tx'), tx_speed)
 
     def load(self, data):
         if not data:
@@ -105,7 +105,7 @@ class MetricSender:
             print('WG data not found')
             return
         data = self._process_data(data)
-        self.delta(data)
+        self.calculate_speed(data)
         self.last_data = data
         self.last_timestamp = time()
 
