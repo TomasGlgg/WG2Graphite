@@ -1,6 +1,6 @@
 from subprocess import run, PIPE
 from json import loads
-from time import time, sleep
+from time import time, monotonic, sleep
 from pickle import dumps
 from struct import pack
 from socket import socket
@@ -94,8 +94,8 @@ class MetricSender:
                 self.sending_data.clear()
                 print('Detected WG reboot')
                 return
-            rx_speed = rx_delta / (time() - self.last_timestamp)
-            tx_speed = tx_delta / (time() - self.last_timestamp)
+            rx_speed = rx_delta / (monotonic() - self.last_timestamp)
+            tx_speed = tx_delta / (monotonic() - self.last_timestamp)
             self._add_data(self.path_by_ip(peer, 'rx'), rx_speed)
             self._add_data(self.path_by_ip(peer, 'tx'), tx_speed)
 
@@ -107,7 +107,7 @@ class MetricSender:
         data = self._process_data(data)
         self.calculate_speed(data)
         self.last_data = data
-        self.last_timestamp = time()
+        self.last_timestamp = monotonic()
 
 
 def main():
