@@ -96,8 +96,9 @@ class MetricSender:
                 return
             rx_speed = rx_delta / (monotonic() - self.last_timestamp)
             tx_speed = tx_delta / (monotonic() - self.last_timestamp)
-            self._add_data(self.path_by_ip(peer, 'rx'), rx_speed)
-            self._add_data(self.path_by_ip(peer, 'tx'), tx_speed)
+            if rx_speed or tx_speed:
+                self._add_data(self.path_by_ip(peer, 'rx'), rx_speed)
+                self._add_data(self.path_by_ip(peer, 'tx'), tx_speed)
 
     def load(self, data):
         if not data:
